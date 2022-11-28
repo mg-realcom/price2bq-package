@@ -58,7 +58,7 @@ def push_cian(path_file: str, bq_path_token: str, bq_project_id: str, bq_table: 
 
 
 def push_avito(path_file: str, bq_path_token: str, bq_project_id: str, bq_table: str) -> (datetime, datetime):
-    df: pd.DataFrame = pd.read_csv(path_file)
+    df: pd.DataFrame = pd.read_csv(path_file, encoding='cp1251')
     df = df.rename(columns={"Дата звонка": "date",
                             "Время звонка": "time",
                             "Длительность звонка в секундах": "call_duration",

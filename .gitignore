@@ -1,7 +1,7 @@
 *.pyc
 
 # Packages
-/dist/*
+/dist
 .cache
 
 # Unit test / coverage reports
