@@ -117,7 +117,8 @@ def push_avito(path_file: str, bq_path_token: str, bq_project_id: str, bq_table:
               SchemaField("status", "STRING"),
               SchemaField("geo", "STRING"),
               SchemaField("object", "STRING"),
-              SchemaField("id", "STRING")]
+              SchemaField("id", "STRING"),
+              SchemaField("date_upload", "DATETIME")]
     bq = Client(bq_path_token, bq_project_id)
     bq.upload_table(df, bq_table, schema)
     return start_date, finish_date
@@ -161,7 +162,8 @@ def push_novostroy_m(path_file: str, bq_path_token: str, bq_project_id: str, bq_
               SchemaField("dispute", "STRING"),
               SchemaField("status", "STRING"),
               SchemaField("sign", "STRING"),
-              SchemaField("final_cost", "FLOAT64")]
+              SchemaField("final_cost", "FLOAT64"),
+              SchemaField("date_upload", "DATETIME")]
     bq = Client(bq_path_token, bq_project_id)
     bq.upload_table(df, bq_table, schema)
     return start_date, finish_date
