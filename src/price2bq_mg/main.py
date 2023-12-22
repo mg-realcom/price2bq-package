@@ -45,7 +45,8 @@ def prepare_cian(path_file: str) -> pd.DataFrame:
     df = df.rename(columns={"Id": "id", "Дата": "call_datetime", "Входящий номер": "incoming_number",
                             "Подменный номер клиента": "substitute_client_number",
                             "Подменный номер застройщика": "replacement_builder_number",
-                            "Исходящий номер": "outgoing_number", "Название ЖК": "object", "Статус": "status",
+                            "Исходящий номер/SIP URI": "outgoing_number", "Название ЖК": "object", "Статус": "status",
+                            "Статус ответа(только ОЗ)": "response_status",
                             "Разговор": "call_duration", "Тариф": "tariff", "Аукцион": "auction",
                             "Cписано в баллах": "written_in_points", "Тип": "type_of_call", "Тип лида": "type_of_lead",
                             "Сумма": "final_cost"})
@@ -71,24 +72,40 @@ def push_cian(path_file: str, bq_path_token: str, bq_project_id: str, bq_table: 
               SchemaField("tariff", "INT64"), SchemaField("auction", "INT64"),
               SchemaField("written_in_points", "INT64"), SchemaField("type_of_call", "STRING"),
               SchemaField("type_of_lead", "STRING"), SchemaField("final_cost", "INT64"),
-              SchemaField("date_upload", "DATETIME")]
+              SchemaField("date_upload", "DATETIME"),
+              SchemaField("response_status", "STRING")
+              ]
     bq = Client(bq_path_token, bq_project_id)
     bq.upload_table(df, bq_table, schema)
     return start_date, finish_date
 
 
 def prepare_avito(path_file: str) -> pd.DataFrame:
-    df: pd.DataFrame = pd.read_csv(path_file, encoding='cp1251')
-    df = df.rename(columns={"Дата звонка": "date",
-                            "Время звонка": "time",
-                            "Длительность звонка в секундах": "call_duration",
-                            "Кто звонил": "incoming_number",
-                            "Кому звонили": "outgoing_number",
-                            "Стоимость звонка в рублях": "final_cost",
-                            "Статус звонка": "status",
-                            "Регион": "geo",
-                            "Группа": "object",
-                            "id звонка": "id"})
+    try:
+        df: pd.DataFrame = pd.read_csv(path_file, encoding='cp1251')
+        df = df.rename(columns={"Дата звонка": "date",
+                                "Время звонка": "time",
+                                "Длительность звонка в секундах": "call_duration",
+                                "Кто звонил": "incoming_number",
+                                "Кому звонили": "outgoing_number",
+                                "Стоимость звонка в рублях": "final_cost",
+                                "Статус звонка": "status",
+                                "Регион": "geo",
+                                "Группа": "object",
+                                "id звонка": "id"})
+    except BaseException:
+        df: pd.DataFrame = pd.read_csv(path_file, encoding='utf-8')
+        df = df.rename(columns={"Дата звонка": "date",
+                                "Время звонка": "time",
+                                "Длительность звонка в секундах": "call_duration",
+                                "Кто звонил": "incoming_number",
+                                "Кому звонили": "outgoing_number",
+                                "Стоимость звонка в рублях": "final_cost",
+                                "Статус звонка": "status",
+                                "Регион": "geo",
+                                "Группа": "object",
+                                "id звонка": "id"})
+
     df["final_cost"] = df["final_cost"].str.replace(',', '.')
     df['time'] = pd.to_datetime(df['time'], format='%H:%M').dt.time
     df = df.astype({"date": "datetime64[ns]",
@@ -163,6 +180,39 @@ def push_novostroy_m(path_file: str, bq_path_token: str, bq_project_id: str, bq_
               SchemaField("status", "STRING"),
               SchemaField("sign", "STRING"),
               SchemaField("final_cost", "FLOAT64"),
+              SchemaField("date_upload", "DATETIME")]
+    bq = Client(bq_path_token, bq_project_id)
+    bq.upload_table(df, bq_table, schema)
+    return start_date, finish_date
+
+
+def prepare_jcat(path_file: str) -> pd.DataFrame:
+    df = pd.read_excel(path_file, sheet_name="Sheet1")
+    df = df.rename(columns={"Дата и время": "call_datetime",
+                            "Статус": "status",
+                            "Рекламная кампания": "campaign",
+                            "Номер абонента": "number",
+                            "Длительность звонка": "call_duration",
+                            "Теги": "tags",
+                            })
+    df = df.astype(
+        {"call_datetime": "datetime64[ns]", "status": str, "campaign": str, "number": str, "call_duration": str})
+    df["date_upload"] = datetime.now()
+    df_new = df[["call_datetime", "status", "campaign", "number", "call_duration", "tags", "date_upload"]].copy()
+
+    return df_new
+
+
+def push_jcat(path_file: str, bq_path_token: str, bq_project_id: str, bq_table: str) -> (datetime, datetime):
+    df = prepare_jcat(path_file)
+    start_date: datetime = df["call_datetime"].min()
+    finish_date: datetime = df["call_datetime"].max()
+    schema = [SchemaField("call_datetime", "DATETIME"),
+              SchemaField("status", "STRING"),
+              SchemaField("campaign", "STRING"),
+              SchemaField("number", "STRING"),
+              SchemaField("call_duration", "STRING"),
+              SchemaField("tags", "STRING"),
               SchemaField("date_upload", "DATETIME")]
     bq = Client(bq_path_token, bq_project_id)
     bq.upload_table(df, bq_table, schema)
