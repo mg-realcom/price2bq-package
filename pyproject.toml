@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "price2bq_mg"
-version = "1.1.0"
+name = "price2bq-zfullio"
+version = "1.2.1"
 description = "Экспорт файлов c площадок 'Яндекс Недвижимость', 'Авито' 'Циан' в BigQuery"
 authors = ["viktor <vi.dave@yandex.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10, <3.11"
+python = ">=3.10"
 pandas = "^2"
 loguru = "^0"
 python-dotenv = "^1"
@@ -16,7 +16,7 @@ xlrd = "^2"
 
 [tool.poetry.dev-dependencies]
 coverage = "^7"
-pytest = "^7"
+pytest = "^8"
 
 [build-system]
 requires = ["poetry-core"]
