@@ -19,4 +19,5 @@ def test_avito() -> None:
 def test_novostroy_m() -> None:
     df = prepare_novostroy_m("test_novostroy_m.xls")
     assert len(df)
-
+    df2 = prepare_novostroy_m("test_novostroy_m.xlsx")
+    assert len(df2)
