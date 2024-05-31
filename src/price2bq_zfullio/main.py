@@ -142,11 +142,8 @@ def push_avito(path_file: str, bq_path_token: str, bq_project_id: str, bq_table:
 
 
 def prepare_novostroy_m(path_file: str) -> pd.DataFrame:
-    df = pd.DataFrame
-    if path_file.endswith(".xls"):
-        df = pd.read_excel(path_file, sheet_name="Make-Connect.ru")
-    else:
-        df = pd.read_excel(path_file)
+    sheet_name = "Make-Connect.ru" if path_file.endswith(".xls") else "Sheet1"
+    df = pd.read_excel(path_file, sheet_name=sheet_name)
     df = df.rename(columns={"Дата": "date",
                             "Время": "time",
                             "Название РК": "campaign",
